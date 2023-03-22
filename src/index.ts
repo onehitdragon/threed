@@ -1,7 +1,6 @@
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { WebGLRenderer, Scene, PerspectiveCamera, AxesHelper,
     BoxGeometry, MeshBasicMaterial, Mesh, GridHelper } from 'three';
-
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 const renderer = new WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
