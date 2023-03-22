@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/dat.gui": "^0.7.9",
     "@types/three": "^0.149.0",
     "ts-loader": "^9.4.2",
     "webpack": "^5.76.2",
