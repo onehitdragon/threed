@@ -1,9 +1,11 @@
 import { WebGLRenderer, Scene, PerspectiveCamera, AxesHelper,
-    BoxGeometry, MeshBasicMaterial, Mesh, GridHelper, DirectionalLight, DirectionalLightHelper, EquirectangularReflectionMapping, sRGBEncoding, Group } from 'three';
+    GridHelper, DirectionalLight, DirectionalLightHelper, EquirectangularReflectionMapping, sRGBEncoding,
+    Group, BoxGeometry, MeshBasicMaterial, Mesh, Material, MeshPhysicalMaterial } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader';
 import { GUI } from 'dat.gui';
+import { customGLTFLoader } from './utils';
+import { World, Vec3, Body, Box, Sphere } from "cannon-es";
 
 const renderer = new WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -23,69 +25,99 @@ scene.add(directLight);
 const directLightHelper = new DirectionalLightHelper(directLight);
 scene.add(directLightHelper);
 
+const gui = new GUI();
 const orbitControls = new OrbitControls(camera, renderer.domElement);
-const glftLoader = new GLTFLoader();
 const rgbeLoader = new RGBELoader();
 
 renderer.outputEncoding = sRGBEncoding;
 
+const world = new World({
+    gravity: new Vec3(0, -9.8, 0)
+})
+const timeStep = 1/60;
+
+const planeMesh = new BoxGeometry(50, 0.1, 50);
+const planeMaterial = new MeshBasicMaterial({ color: "red" });
+const plane = new Mesh(planeMesh, planeMaterial);
+plane.material.wireframe = false;
+scene.add(plane);
+
+const planeBody = new Body({
+    shape: new Box(new Vec3(50, 0.1, 50))
+});
+const carBody = new Body({
+    shape: new Sphere(0.01),
+    mass: 1,
+    position: new Vec3(0, 0.5, 0),
+    velocity: new Vec3(0, 0, 5)
+});
+
 let carModel: Group;
-rgbeLoader.load("/assets/hdr/HDR_029_Sky_Cloudy_Free/grass.hdr", (texture) => {
+rgbeLoader.load("/assets/hdr/HDR_029_Sky_Cloudy_Free/grass.hdr",async (texture) => {
     texture.mapping = EquirectangularReflectionMapping;
     scene.background = texture;
 
-    glftLoader.load("/assets/untitled.glb", (glft) => {
-        carModel = glft.scene;
-        scene.add(carModel);
-    }, undefined, (err) => {
-        console.log(err);
-    })
+    const mapModel = await customGLTFLoader(
+        "/assets/abc/scene.gltf",
+        "map",
+        {
+            x: 0,
+            y: -109,
+            z: 0
+        }
+    );
+    scene.add(mapModel);
+    mapModel.position.y = -109;
+
+    carModel = await customGLTFLoader(
+        "/assets/untitled.glb",
+        "car"
+    );
+    // carModel.traverse((node) => {
+    //     if(node.type === "Mesh"){
+    //         ((node as Mesh).material as MeshPhysicalMaterial).wireframe = true;
+    //     }
+    // })
+    scene.add(carModel);
+
+    world.addBody(planeBody);
+    world.addBody(carBody);
 })
 
 const axesHelper = new AxesHelper(5);
 const gridHelper = new GridHelper();
 scene.add(axesHelper);
 scene.add(gridHelper);
-camera.position.z = 10;
-camera.position.x = 2;
-camera.position.y = 4;
+const cameraOption = {
+    x: 0,
+    y: 5,
+    z: 8
+}
+camera.position.y = 5;
+camera.position.z = 8;
 orbitControls.update();
 
-const boxGeometry = new BoxGeometry();
-const boxMaterial = new MeshBasicMaterial({ color: "red" })
-const box = new Mesh(boxGeometry, boxMaterial);
-const boxOption = { 
-    color: "#eb4034",
-    wireframe: false,
-    x: 0,
-    y: 0,
-    z: 0
-}
-
-const gui = new GUI();
-const boxGui = gui.addFolder("box-1");
-boxGui.addColor(boxOption, "color").onChange((value: string) => {
-    box.material.color.set(value);
-});
-boxGui.add(boxOption, "wireframe").onChange((value: boolean) => {
-    box.material.wireframe = value;
+const cameraGui = gui.addFolder("camera");
+cameraGui.add(cameraOption, "x", 0, 100).onChange((value: number) => {
+    camera.position.x = value;
+    orbitControls.update();
 })
-boxGui.add(boxOption, "x").onChange((value: number) => {
-    box.position.x = value;
+cameraGui.add(cameraOption, "y", 0, 100).onChange((value: number) => {
+    camera.position.y = value;
+    orbitControls.update();
 })
-boxGui.add(boxOption, "y").onChange((value: number) => {
-    box.position.y = value;
+cameraGui.add(cameraOption, "z", -100, 100).onChange((value: number) => {
+    camera.position.z = value;
+    orbitControls.update();
 })
-boxGui.add(boxOption, "z").onChange((value: number) => {
-    box.position.z = value;
-})
-
-scene.add(box);
 
 function animate(time: number){
-    console.log("aaa");
+    world.step(timeStep);
     if(typeof carModel !== "undefined"){
-        carModel.rotation.y = time / 1000;
+        plane.position.copy(planeBody.position as any);
+        plane.quaternion.copy(planeBody.quaternion as any);
+        carModel.position.copy(carBody.position as any);
+        //carModel.quaternion.copy(carBody.quaternion as any);
     }
     renderer.render(scene, camera);
 }

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Israel, Pazael (Simplified) - Race Track
+* source:	https://sketchfab.com/3d-models/israel-pazael-simplified-race-track-aa2cf6cb65f94af394aa189506c9bd17
+* author:	dpashkov (https://sketchfab.com/dpashkov)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Israel, Pazael (Simplified) - Race Track" (https://sketchfab.com/3d-models/israel-pazael-simplified-race-track-aa2cf6cb65f94af394aa189506c9bd17) by dpashkov (https://sketchfab.com/dpashkov) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
